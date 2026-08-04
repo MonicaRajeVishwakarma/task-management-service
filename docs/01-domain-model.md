@@ -1,185 +1,107 @@
 # Domain Model
 
-## Project
-
-Todo API
+## Task Management Service
 
 ---
 
-# Purpose
+## Purpose
 
-The Todo API is a backend service for managing personal tasks organized into projects.
+The Task Management Service manages users, projects, and tasks.
 
-The primary goal is to model the business domain rather than simply exposing CRUD operations.
+The system is designed using Domain-Driven Design (DDD) principles, where business concepts and rules are modeled explicitly inside the domain layer.
 
-This project follows:
-
-- Domain-Driven Design (DDD)
-- Clean Architecture
-- SOLID Principles
-- Separation of Concerns
+The focus is not only exposing APIs, but building a backend service with a clear domain model and well-defined architectural boundaries.
 
 ---
 
-# Domain
+# Bounded Context
 
-Personal Task Management
+## Task Management Context
+
+The initial bounded context of this system is:
+
+```
+Task Management
+
+├── User
+├── Project
+├── Task
+├── Priority
+├── Status
+└── Due Date
+```
+
+Future bounded contexts may include:
+
+```
+Identity Context
+
+Notification Context
+
+Billing Context
+
+Reporting Context
+```
 
 ---
 
 # Ubiquitous Language
 
-The following terms are shared between developers, product owners and stakeholders.
+These terms represent the shared language between developers and business stakeholders.
 
 | Term | Description |
 |------|-------------|
-| User | Person who owns projects |
-| Project | Collection of related tasks |
-| Task | Work item owned by a project |
-| Task Title | Human readable title of a task |
-| Priority | Importance of a task |
+| User | Person who owns and manages projects |
+| Project | A collection of related tasks |
+| Task | A unit of work that needs completion |
+| Task Title | Name describing the task |
+| Priority | Importance level of a task |
 | Status | Current lifecycle state of a task |
 | Due Date | Expected completion date |
-| Reminder | Notification before due date |
 
 ---
 
 # Domain Overview
 
 ```
-
 User
-│
-│ owns
-▼
-Project
-│
-│ contains
-▼
-Task
-│
-├── Title
-├── Description
-├── Priority
-├── Status
-└── Due Date
 
+  |
+  | owns
+  v
+
+Project
+
+  |
+  | contains
+  v
+
+Task Aggregate
+
+  |
+  ├── Task ID
+  ├── Task Title
+  ├── Description
+  ├── Priority
+  ├── Status
+  └── Due Date
 ```
 
 ---
 
-# Entities
-
-## User
-
-Represents a person using the system.
-
-Identity:
-
-- UserID
-
----
-
-## Project
-
-Represents a logical grouping of tasks.
-
-Identity:
-
-- ProjectID
-
----
-
-## Task
-
-Represents a unit of work.
-
-Identity:
-
-- TaskID
-
----
-
-# Value Objects
-
-## TaskTitle
-
-Represents a valid task title.
-
-Rules:
-
-- Cannot be empty
-- Cannot contain only whitespace
-- Maximum length (to be defined)
-
----
-
-## Priority
-
-Represents task importance.
-
-Allowed values:
-
-- LOW
-- MEDIUM
-- HIGH
-
----
-
-## TaskStatus
-
-Represents the lifecycle of a task.
-
-Allowed values:
-
-- TODO
-- IN_PROGRESS
-- COMPLETED
-
----
-
-## DueDate
-
-Represents a valid task deadline.
-
-Rules:
-
-- Cannot be invalid date
-- Future business rules may restrict past dates
-
----
-
-# Aggregate
+# Aggregates
 
 ## Task Aggregate
 
 Aggregate Root:
 
-- Task
+```
+Task
+```
 
-Contains:
+The Task entity controls all changes within the aggregate.
 
-- TaskTitle
-- Priority
-- TaskStatus
-- DueDate
-- Description
-
-The Task Aggregate is responsible for enforcing all task-related business rules.
-
----
-
-# Aggregate Root Responsibilities
-
-The Task Aggregate Root controls:
-
-- Completing a task
-- Renaming a task
-- Updating priority
-- Updating due date
-- Protecting lifecycle transitions
-
-External code must never modify internal state directly.
+External code should not directly modify internal state.
 
 Correct:
 
@@ -193,88 +115,247 @@ Incorrect:
 task.Status = COMPLETED
 ```
 
+The aggregate protects business rules and ensures the object cannot enter an invalid state.
+
+---
+
+# Entities
+
+## User
+
+Represents a person using the system.
+
+Identity:
+
+```
+UserID
+```
+
+---
+
+## Project
+
+Represents a collection of tasks.
+
+Identity:
+
+```
+ProjectID
+```
+
+Responsibilities:
+
+- Organize tasks
+- Manage project lifecycle
+
+---
+
+## Task
+
+Represents a business unit of work.
+
+Identity:
+
+```
+TaskID
+```
+
+Responsibilities:
+
+- Manage task lifecycle
+- Enforce task rules
+- Raise domain events
+
+---
+
+# Value Objects
+
+Value Objects represent concepts where identity is not important.
+
+They are defined by their value.
+
+---
+
+## TaskID
+
+Represents the unique identifier of a task.
+
+Example:
+
+```
+task-123
+```
+
+---
+
+## TaskTitle
+
+Represents a valid task title.
+
+Rules:
+
+- Cannot be empty
+- Cannot contain only whitespace
+- Maximum length rules will be defined later
+
+---
+
+## Priority
+
+Represents task importance.
+
+Allowed values:
+
+```
+LOW
+MEDIUM
+HIGH
+```
+
+---
+
+## TaskStatus
+
+Represents the lifecycle state.
+
+Allowed values:
+
+```
+TODO
+IN_PROGRESS
+COMPLETED
+```
+
+---
+
+## DueDate
+
+Represents when a task should be completed.
+
+Rules:
+
+- Must represent a valid date
+- Future business rules may restrict invalid deadlines
+
 ---
 
 # Business Rules
 
-Current rules:
+The domain enforces the following rules:
 
-1. Task title cannot be empty.
-2. Priority must be valid.
-3. Task status must be valid.
-4. Completed tasks cannot be reopened.
-5. Task lifecycle follows defined transitions.
+## Task Title
+
+A task cannot exist without a valid title.
 
 ---
 
-# Allowed Status Transitions
+## Priority
+
+Only supported priority values are allowed.
+
+---
+
+## Task Lifecycle
+
+Valid transitions:
 
 ```
-
 TODO
-│
-├──────────────► COMPLETED
-│
-▼
+ |
+ v
 IN_PROGRESS
-│
-▼
+ |
+ v
 COMPLETED
-
 ```
 
-Not allowed:
+Invalid transitions:
 
 ```
+COMPLETED -> TODO
 
-COMPLETED → TODO
-
-COMPLETED → IN_PROGRESS
-
+COMPLETED -> IN_PROGRESS
 ```
+
+A completed task cannot be reopened.
 
 ---
 
-# Candidate Domain Events
+# Domain Events
 
-The following domain events may be introduced later.
+Domain events represent important business facts that happened.
 
-- TaskCreated
-- TaskCompleted
-- TaskRenamed
-- TaskPriorityChanged
-- TaskDueDateChanged
+Potential events:
 
----
+```
+TaskCreated
 
-# Repository Contracts
+TaskCompleted
 
-The domain requires repositories but does not define persistence technology.
+TaskRenamed
+
+TaskPriorityChanged
+
+TaskDueDateChanged
+```
+
+Example:
+
+When a task is completed:
+
+```
+Task.Complete()
+
+        |
+        v
+
+TaskCompleted Event
+```
+
+The domain does not decide what happens next.
+
+Other parts of the system may react.
 
 Examples:
 
-- TaskRepository
-- ProjectRepository
-- UserRepository
-
-Implementations may use:
-
-- PostgreSQL
-- MySQL
-- MongoDB
-- In-memory repository for testing
-
-The domain remains independent of infrastructure.
+- Send notification
+- Update activity history
+- Trigger analytics
 
 ---
 
-# Design Goals
+# Domain Independence
 
-The domain should:
+The domain layer does not depend on:
 
-- Protect business rules
-- Prevent invalid states
-- Express business language
-- Remain independent of frameworks
-- Remain independent of databases
-- Be easily testable
+- HTTP
+- PostgreSQL
+- Docker
+- Kubernetes
+- AWS services
+
+The domain only contains business concepts and rules.
+
+---
+
+# Design Principles Applied
+
+## Domain-Driven Design
+
+Business concepts are represented explicitly.
+
+## Single Responsibility Principle
+
+Each object owns a focused responsibility.
+
+## Encapsulation
+
+Objects protect their own rules.
+
+## Dependency Inversion
+
+The domain does not depend on infrastructure details.
+
+## Separation of Concerns
+
+Business logic, application flow, and infrastructure are separated.
