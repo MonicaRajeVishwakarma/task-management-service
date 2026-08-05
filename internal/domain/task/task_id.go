@@ -20,3 +20,25 @@ func NewTaskID() TaskID {
 		value: uuid.New(),
 	}
 }
+
+// TaskIDFromString creates a TaskID from an existing UUID string.
+func TaskIDFromString(id string) (TaskID, error) {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return TaskID{}, ErrInvalidTaskID
+	}
+
+	return TaskID{
+		value: parsedID,
+	}, nil
+}
+
+// String returns the string representation of TaskID.
+func (id TaskID) String() string {
+	return id.value.String()
+}
+
+// Equals compares two TaskIDs.
+func (id TaskID) Equals(other TaskID) bool {
+	return id.value == other.value
+}
