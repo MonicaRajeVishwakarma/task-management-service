@@ -70,21 +70,21 @@ func TestTaskIDFromString(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name : "successfully returns the TaskID ",
-			id : strUUID,
-			want : TaskID{value: expectedUUID},
+			name:    "successfully returns the TaskID ",
+			id:      strUUID,
+			want:    TaskID{value: expectedUUID},
 			wantErr: false,
 		},
 		{
-			name : "rejects invaild UUID",
-			id : "INVALID",
-			want : TaskID{},
+			name:    "rejects invaild UUID",
+			id:      "INVALID",
+			want:    TaskID{},
 			wantErr: true,
 		},
 		{
-			name: "rejects empty string",
-			id: "",
-			want: TaskID{},
+			name:    "rejects empty string",
+			id:      "",
+			want:    TaskID{},
 			wantErr: true,
 		},
 	}
@@ -101,7 +101,7 @@ func TestTaskIDFromString(t *testing.T) {
 				t.Fatal("TaskIDFromString() succeeded unexpectedly")
 			}
 
-			if got.value != tt.want.value{
+			if got.value != tt.want.value {
 				t.Errorf("TaskIDFromString() = %v, want %v", got, tt.want)
 			}
 		})

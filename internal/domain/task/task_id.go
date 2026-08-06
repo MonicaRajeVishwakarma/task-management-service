@@ -13,7 +13,6 @@ type TaskID struct {
 	value uuid.UUID
 }
 
-
 // NewTaskID creates a new TaskID
 func NewTaskID() TaskID {
 	return TaskID{
