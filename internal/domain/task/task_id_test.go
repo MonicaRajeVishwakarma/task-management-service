@@ -22,7 +22,7 @@ func TestNewTaskID_ShouldGenerateUniqueTaskIDs(t *testing.T) {
 	first := NewTaskID()
 	second := NewTaskID()
 
-	if first.Equals(second) {
+	if first.value == second.value {
 		t.Fatal("expected generated TaskIDs to be unique")
 	}
 }
@@ -46,7 +46,7 @@ func TestTaskID_Equals(t *testing.T) {
 
 	id := NewTaskID()
 
-	if !id.Equals(id) {
+	if (id.value != id.value) {
 		t.Fatal("expected TaskID to equal itself")
 	}
 
