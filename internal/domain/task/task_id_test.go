@@ -46,7 +46,7 @@ func TestTaskID_Equals(t *testing.T) {
 
 	id := NewTaskID()
 
-	if (id.value != id.value) {
+	if id.value != id.value {
 		t.Fatal("expected TaskID to equal itself")
 	}
 
